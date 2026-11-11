@@ -1,0 +1,38 @@
+{
+  "name": "c7-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "C7 mobile API — serves the c7-mobile app from the same Postgres database FitForge uses",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "migrate": "tsx src/migrate.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:db": "tsx scripts/setup-test-db.ts",
+    "test": "playwright test",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@clerk/backend": "^2.33.9",
+    "@hono/node-server": "^1.19.19",
+    "dotenv": "^16.6.1",
+    "hono": "^4.13.18",
+    "kysely": "^0.28.19",
+    "pg": "^8.23.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "kysely-codegen": "^0.20.0",
+    "tsx": "^4.23.15",
+    "typescript": "5.8"
+  }
+}
