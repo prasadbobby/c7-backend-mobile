@@ -3,10 +3,14 @@ import { cors } from "hono/cors";
 import { z } from "zod";
 import { db } from "./db/index.js";
 import { env } from "./env.js";
-import { requireAdmin, requireAuth, type AppEnv } from "./lib/auth.js";
+import { requireAdmin, requireAuth, requireMember, type AppEnv } from "./lib/auth.js";
 import { HttpError, badRequest, body } from "./lib/http.js";
 import { findTestUserByEmail, registerTestUser } from "./lib/users.js";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { relative } from "node:path";
 import { admin } from "./routes/admin.js";
+import { adminGym, UPLOAD_DIR } from "./routes/adminGym.js";
+import { gym } from "./routes/gym.js";
 import { measurements } from "./routes/body.js";
 import { challenges, comments, posts } from "./routes/challenge.js";
 import { dashboard } from "./routes/dashboard.js";
@@ -42,6 +46,9 @@ export function buildApp() {
     return c.json({ ok: true, authMode: env.authMode });
   });
 
+  // Uploaded workout videos (public, so the app can stream / download them for offline use).
+  app.use("/files/*", serveStatic({ root: relative(process.cwd(), UPLOAD_DIR) || ".", rewriteRequestPath: (p) => p.replace(/^\/files/, "") }));
+
   if (env.authMode === "test") {
     // Test-only: register a fake Clerk profile. Never mounted outside AUTH_MODE=test.
     app.post("/__test/users", async (c) => {
@@ -58,6 +65,7 @@ export function buildApp() {
 
   const v1 = new Hono<AppEnv>();
   v1.use("*", requireAuth);
+  v1.use("*", requireMember);
 
   /** Image upload → data URL (same storage format FitForge's /api/upload uses). */
   v1.post("/uploads", async (c) => {
@@ -85,10 +93,12 @@ export function buildApp() {
   v1.route("/recipe-comments", recipeComments);
   v1.route("/users", follows);
   v1.route("/", engagement);
+  v1.route("/", gym);
 
   const adminApp = new Hono<AppEnv>();
   adminApp.use("*", requireAdmin);
   adminApp.route("/", admin);
+  adminApp.route("/", adminGym);
   v1.route("/admin", adminApp);
 
   app.route("/v1", v1);

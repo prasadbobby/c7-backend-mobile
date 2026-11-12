@@ -5,6 +5,10 @@ export const USERS = {
   admin: { userId: "user_admin_1", firstName: "Coach", lastName: "Prasad", email: "coach@c7.test" },
   newbie: { userId: "user_new_1", firstName: "Nina", lastName: "New", email: "invited@c7.test" },
   locked: { userId: "user_locked_1", firstName: "Lou", lastName: "Locked", email: "locked@c7.test" },
+  /** Signed up in the app without an invitation → guest (packages only). */
+  guest: { userId: "user_guest_1", firstName: "Gary", lastName: "Guest", email: "gary@c7.test" },
+  /** Member whose package ended yesterday → renew-only. */
+  expired: { userId: "user_expired_1", firstName: "Eve", lastName: "Expired", email: "eve@c7.test" },
 } as const;
 export const token = (k: keyof typeof USERS) => `test_${USERS[k].userId}`;
 export const auth = (k: keyof typeof USERS) => ({ Authorization: `Bearer ${token(k)}` });

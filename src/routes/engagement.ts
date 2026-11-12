@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { audienceFilter, checkupFor } from "./gym.js";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import type { AppEnv } from "../lib/auth.js";
@@ -78,6 +79,20 @@ engagement.get("/notifications", async (c) => {
   const rc = await db.selectFrom("RecipeComment").select(["id", "userId", "content", "createdAt", "recipeId"]).where("recipeId", "in", recipeIds).where("userId", "!=", u.userId).where("createdAt", ">=", since).execute();
   const rcUsers = await getUsers(rc.map((r) => r.userId));
   for (const r of rc) items.push({ id: `rc-${r.id}`, kind: "social", title: `${displayName(rcUsers.get(r.userId)!)} commented on your recipe`, body: r.content.slice(0, 120), at: r.createdAt, link: `/meal/${r.recipeId}` });
+
+  // Gym announcements (broadcast + personal payment reminders) and the next BMI check-up.
+  const anns = await db
+    .selectFrom("Announcement as a")
+    .leftJoin("AnnouncementRead as r", (j) => j.onRef("r.announcementId", "=", "a.id").on("r.userId", "=", u.userId))
+    .select(["a.id", "a.title", "a.body", "a.kind", "a.publishedAt", "r.readAt"])
+    .where((eb) => eb.or([eb("a.audience", "in", audienceFilter(u.access)), eb.and([eb("a.audience", "=", "USER"), eb("a.targetUserId", "=", u.userId)])]))
+    .where("a.publishedAt", "<=", new Date())
+    .where("a.publishedAt", ">=", new Date(Date.now() - 14 * DAY))
+    .where((eb) => eb.or([eb("a.expiresAt", "is", null), eb("a.expiresAt", ">", new Date())]))
+    .execute();
+  for (const a of anns.filter((x) => !x.readAt)) items.push({ id: `ann-${a.id}`, kind: a.kind === "PAYMENT" ? "payment" : "announcement", title: a.title, body: a.body.slice(0, 160), at: a.publishedAt, link: `/announcements` });
+  const chk = await checkupFor(u.userId);
+  if (chk && chk.daysLeft <= 3) items.push({ id: `checkup-${chk.nextDate.toISOString().slice(0, 10)}`, kind: "checkup", title: chk.overdue ? "BMI check-up overdue" : chk.daysLeft <= 0 ? "BMI check-up today" : `BMI check-up in ${chk.daysLeft} day${chk.daysLeft === 1 ? "" : "s"}`, body: "Log your weight and measurements so your coach can track progress.", at: new Date(), link: "/bmi" });
 
   items.sort((a, b) => b.at.getTime() - a.at.getTime());
   return c.json({ notifications: items });

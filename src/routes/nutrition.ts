@@ -23,7 +23,7 @@ export async function daySummary(userId: string, date: string) {
     db
       .selectFrom("MealLog as m")
       .leftJoin("Recipe as r", "r.id", "m.recipeId")
-      .select(["m.id", "m.slot", "m.name", "m.kcal", "m.protein", "m.carbs", "m.fat", "m.servings", "m.recipeId", "m.createdAt", "r.imageUrl"])
+      .select(["m.id", "m.slot", "m.name", "m.kcal", "m.protein", "m.carbs", "m.fat", "m.servings", "m.recipeId", "m.createdAt", "m.photoUrl", "r.imageUrl"])
       .where("m.userId", "=", userId)
       .where("m.date", "=", day)
       .orderBy("m.createdAt", "asc")
@@ -82,6 +82,7 @@ const mealSchema = z
     carbs: z.number().min(0).max(1000).optional(),
     fat: z.number().min(0).max(1000).optional(),
     servings: z.number().positive().max(20).default(1),
+    photoUrl: z.string().regex(/^(data:image\/|https:\/\/)/).max(8 * 1024 * 1024).optional(),
   })
   .refine((b) => b.recipeId || (b.name && b.kcal !== undefined), { message: "Provide a recipeId, or a name and kcal" });
 
@@ -110,6 +111,7 @@ nutrition.post("/meals", async (c) => {
       carbs: Math.round(row.carbs * s * 10) / 10,
       fat: Math.round(row.fat * s * 10) / 10,
       servings: s,
+      photoUrl: b.photoUrl ?? null,
     })
     .execute();
   return c.json({ id, summary: await daySummary(u.userId, b.date) }, 201);

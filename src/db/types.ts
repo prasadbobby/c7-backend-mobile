@@ -88,6 +88,39 @@ export interface _C7Migrations {
   name: string;
 }
 
+export interface Announcement {
+  audience: Generated<string>;
+  body: string;
+  createdAt: Generated<Timestamp>;
+  createdBy: string;
+  expiresAt: Timestamp | null;
+  id: string;
+  imageUrl: string | null;
+  kind: Generated<string>;
+  pinned: Generated<boolean>;
+  publishedAt: Generated<Timestamp>;
+  targetUserId: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface AnnouncementRead {
+  announcementId: string;
+  id: string;
+  readAt: Generated<Timestamp>;
+  userId: string;
+}
+
+export interface AppAccount {
+  accountType: Generated<string>;
+  convertedAt: Timestamp | null;
+  convertedBy: string | null;
+  createdAt: Generated<Timestamp>;
+  id: string;
+  source: Generated<string>;
+  userId: string;
+}
+
 export interface AssignedWorkout {
   assignedAt: Generated<Timestamp>;
   assignedBy: string;
@@ -97,6 +130,18 @@ export interface AssignedWorkout {
   status: Generated<Assignmentstatus>;
   userId: string;
   workoutPlanId: string;
+}
+
+export interface Attendance {
+  checkInAt: Timestamp | null;
+  createdAt: Generated<Timestamp>;
+  date: Timestamp;
+  id: string;
+  markedBy: string;
+  notes: string | null;
+  status: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
 }
 
 export interface BodyMeasurement {
@@ -122,6 +167,17 @@ export interface CaloriesData {
   id: string;
   restingCalories: number | null;
   updatedAt: Timestamp;
+  userId: string;
+}
+
+export interface CheckupSchedule {
+  createdAt: Generated<Timestamp>;
+  id: string;
+  intervalDays: Generated<number>;
+  nextDate: Timestamp;
+  notes: string | null;
+  setBy: string;
+  updatedAt: Generated<Timestamp>;
   userId: string;
 }
 
@@ -260,6 +316,31 @@ export interface HeartRateData {
   userId: string;
 }
 
+export interface Invoice {
+  amountPaid: Generated<number>;
+  createdAt: Generated<Timestamp>;
+  createdBy: string;
+  description: string;
+  discount: Generated<number>;
+  dueDate: Timestamp | null;
+  id: string;
+  issuedAt: Generated<Timestamp>;
+  notes: string | null;
+  number: string;
+  packageId: string | null;
+  paymentLogId: string | null;
+  paymentMethod: string | null;
+  periodEnd: Timestamp | null;
+  periodStart: Timestamp | null;
+  status: Generated<string>;
+  subtotal: number;
+  taxAmount: Generated<number>;
+  taxPercent: Generated<number>;
+  total: number;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+}
+
 export interface MealLog {
   carbs: Generated<number>;
   createdAt: Generated<Timestamp>;
@@ -268,6 +349,7 @@ export interface MealLog {
   id: string;
   kcal: Generated<number>;
   name: string;
+  photoUrl: string | null;
   protein: Generated<number>;
   recipeId: string | null;
   servings: Generated<number>;
@@ -285,6 +367,20 @@ export interface MeasurementGoal {
   targetDate: Timestamp | null;
   targetValue: number;
   updatedAt: Timestamp;
+  userId: string;
+}
+
+export interface MedicalReport {
+  category: Generated<string>;
+  createdAt: Generated<Timestamp>;
+  fileSize: Generated<number>;
+  fileType: string;
+  fileUrl: string;
+  id: string;
+  notes: string | null;
+  reportDate: Timestamp;
+  title: string;
+  uploadedBy: string;
   userId: string;
 }
 
@@ -416,6 +512,36 @@ export interface NutritionGoal {
   waterMl: Generated<number>;
 }
 
+export interface Package {
+  createdAt: Generated<Timestamp>;
+  createdBy: string;
+  description: string | null;
+  durationDays: number;
+  features: Generated<string[]>;
+  highlight: Generated<boolean>;
+  id: string;
+  imageUrl: string | null;
+  isActive: Generated<boolean>;
+  mode: Generated<string>;
+  name: string;
+  offerPrice: number | null;
+  price: number;
+  sortOrder: Generated<number>;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface PackageEnquiry {
+  createdAt: Generated<Timestamp>;
+  handledBy: string | null;
+  id: string;
+  message: string | null;
+  packageId: string;
+  phone: string | null;
+  status: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+}
+
 export interface PaymentLog {
   amount: number;
   createdAt: Generated<Timestamp>;
@@ -436,6 +562,17 @@ export interface PendingInvitation {
   invitationId: string | null;
   role: Userrole;
   updatedAt: Timestamp;
+}
+
+export interface ProgressPhoto {
+  createdAt: Generated<Timestamp>;
+  id: string;
+  imageUrl: string;
+  notes: string | null;
+  pose: Generated<string>;
+  takenAt: Timestamp;
+  userId: string;
+  weight: number | null;
 }
 
 export interface Recipe {
@@ -769,11 +906,34 @@ export interface WorkoutSession {
   workoutLogId: string | null;
 }
 
+export interface WorkoutVideo {
+  category: Generated<string>;
+  createdAt: Generated<Timestamp>;
+  createdBy: string;
+  description: string | null;
+  durationSec: Generated<number>;
+  exerciseId: string | null;
+  id: string;
+  isAnimated: Generated<boolean>;
+  isPublished: Generated<boolean>;
+  sizeBytes: Generated<number>;
+  sortOrder: Generated<number>;
+  thumbnailUrl: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+  videoUrl: string;
+}
+
 export interface DB {
   _c7_migrations: _C7Migrations;
+  Announcement: Announcement;
+  AnnouncementRead: AnnouncementRead;
+  AppAccount: AppAccount;
   AssignedWorkout: AssignedWorkout;
+  Attendance: Attendance;
   BodyMeasurement: BodyMeasurement;
   CaloriesData: CaloriesData;
+  CheckupSchedule: CheckupSchedule;
   DistanceData: DistanceData;
   Exercise: Exercise;
   FavouriteExercise: FavouriteExercise;
@@ -784,8 +944,10 @@ export interface DB {
   GymSession: GymSession;
   GymSessionParticipant: GymSessionParticipant;
   HeartRateData: HeartRateData;
+  Invoice: Invoice;
   MealLog: MealLog;
   MeasurementGoal: MeasurementGoal;
+  MedicalReport: MedicalReport;
   MembershipLog: MembershipLog;
   MonthlyExpense: MonthlyExpense;
   NinetyDayChallenge: NinetyDayChallenge;
@@ -796,8 +958,11 @@ export interface DB {
   NinetyDayChallengePostView: NinetyDayChallengePostView;
   NinetyDayChallengeReaction: NinetyDayChallengeReaction;
   NutritionGoal: NutritionGoal;
+  Package: Package;
+  PackageEnquiry: PackageEnquiry;
   PaymentLog: PaymentLog;
   PendingInvitation: PendingInvitation;
+  ProgressPhoto: ProgressPhoto;
   Recipe: Recipe;
   RecipeComment: RecipeComment;
   RecipeLike: RecipeLike;
@@ -824,4 +989,5 @@ export interface DB {
   WorkoutPlan: WorkoutPlan;
   WorkoutPlanExercise: WorkoutPlanExercise;
   WorkoutSession: WorkoutSession;
+  WorkoutVideo: WorkoutVideo;
 }

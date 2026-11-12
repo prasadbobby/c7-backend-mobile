@@ -40,6 +40,8 @@ me.get("/", async (c) => {
       memberSince: info.createdAt,
       membershipStatus: info.membershipStatus,
       membershipEndDate: info.membershipEndDate,
+      /** MEMBER: full app · GUEST: packages only · EXPIRED: renew to continue */
+      access: u.access,
     },
     equipment: equipment.map((e) => e.equipmentType),
     preferences: {

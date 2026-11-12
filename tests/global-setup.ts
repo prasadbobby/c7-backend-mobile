@@ -18,11 +18,11 @@ export default async function globalSetup() {
 
   // Members (UserInfo) — the admin and members exist; the "newbie" has only a pending invitation.
   for (const [k, u] of Object.entries(USERS)) {
-    if (k === "newbie") continue;
+    if (k === "newbie" || k === "guest") continue;
     await q(`INSERT INTO "UserInfo"(id,"userId","c7UserId",role,locked,age,height,weight,"membershipStartDate","membershipEndDate","membershipDuration","membershipStatus","packagePrice","discountedPrice","totalAmountPaid","remainingAmount","nextPaymentDue","updatedAt")
              VALUES ($1,$2,$3,$4,$5,34,168,49,$6,$7,90,'ACTIVE',45000,40000,30000,10000,$8,now())`, [
       randomUUID(), u.userId, `C7${String(Object.keys(USERS).indexOf(k) + 1).padStart(4, "0")}`, k === "admin" ? "SUPER_ADMIN" : "USER", k === "locked",
-      new Date(Date.now() - 85 * day), new Date(Date.now() + 5 * day), new Date(Date.now() + 2 * day),
+      new Date(Date.now() - 85 * day), new Date(Date.now() + (k === "expired" ? -2 : 5) * day), new Date(Date.now() + 2 * day),
     ]);
   }
   await q(`INSERT INTO "PendingInvitation"(id,email,role,"updatedAt") VALUES ($1,'invited@c7.test','USER',now())`, [randomUUID()]);
