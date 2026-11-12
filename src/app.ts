@@ -21,13 +21,21 @@ import { follows, nutrition, recipeComments, recipes } from "./routes/nutrition.
 import { steps } from "./routes/steps.js";
 import { workouts } from "./routes/workouts.js";
 
+const LOCALHOST = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+export function isAllowedOrigin(origin: string | undefined) {
+  if (!origin) return true;
+  const o = origin.replace(/\/+$/, "").toLowerCase();
+  if (env.corsOrigins.includes("*") || env.corsOrigins.includes(o)) return true;
+  return env.allowLocalhost && LOCALHOST.test(o);
+}
+
 export function buildApp() {
   const app = new Hono<AppEnv>();
 
   app.use(
     "*",
     cors({
-      origin: (origin) => (env.corsOrigins.includes("*") ? origin || "*" : env.corsOrigins.includes(origin) ? origin : null),
+      origin: (origin) => (isAllowedOrigin(origin) ? origin || "*" : null),
       allowHeaders: ["Authorization", "Content-Type"],
       allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       maxAge: 600,
@@ -43,7 +51,7 @@ export function buildApp() {
 
   app.get("/health", async (c) => {
     await db.selectFrom("UserInfo").select("id").limit(1).execute();
-    return c.json({ ok: true, authMode: env.authMode });
+    return c.json({ ok: true, authMode: env.authMode, corsOrigins: env.corsOrigins, corsLocalhost: env.allowLocalhost });
   });
 
   // Uploaded workout videos (public, so the app can stream / download them for offline use).

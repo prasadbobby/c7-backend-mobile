@@ -91,3 +91,16 @@ test.describe("profile", () => {
     expect(bad.status()).toBe(400);
   });
 });
+
+test("CORS: configured origins and local dev servers get CORS headers; others don't", async ({ playwright, baseURL }) => {
+  const ctx = await playwright.request.newContext({ baseURL });
+  const pre = (origin: string) => ctx.fetch("/v1/me", { method: "OPTIONS", headers: { Origin: origin, "Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "authorization" } });
+  expect((await pre("http://localhost:8081")).headers()["access-control-allow-origin"]).toBe("http://localhost:8081");
+  expect((await pre("http://localhost:19006")).headers()["access-control-allow-origin"]).toBe("http://localhost:19006");
+  expect((await pre("https://staging.example.com")).headers()["access-control-allow-origin"]).toBe("https://staging.example.com");
+  expect((await pre("https://admin.example.com")).headers()["access-control-allow-origin"]).toBe("https://admin.example.com");
+  expect((await pre("https://evil.example.com")).headers()["access-control-allow-origin"]).toBeUndefined();
+  const h = await (await ctx.get("/health")).json();
+  expect(h.corsLocalhost).toBe(true);
+  await ctx.dispose();
+});

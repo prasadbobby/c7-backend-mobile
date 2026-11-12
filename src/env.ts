@@ -24,7 +24,13 @@ export const env = {
   authMode,
   clerkSecretKey: authMode === "clerk" ? required("CLERK_SECRET_KEY") : process.env.CLERK_SECRET_KEY ?? "",
   clerkJwtKey: process.env.CLERK_JWT_KEY, // optional: PEM public key for networkless verification
-  corsOrigins: (process.env.CORS_ORIGINS ?? "*").split(",").map((s) => s.trim()).filter(Boolean),
+  // Tolerates quotes, spaces, trailing slashes and ";" separators from hand-edited .env files.
+  corsOrigins: (process.env.CORS_ORIGINS ?? "*")
+    .split(/[,;\s]+/)
+    .map((s) => s.trim().replace(/^['"]|['"]$/g, "").replace(/\/+$/, "").toLowerCase())
+    .filter(Boolean),
+  /** Local Expo / Next dev servers may call this API (auth is a bearer token, never cookies). */
+  allowLocalhost: (process.env.CORS_ALLOW_LOCALHOST ?? "true") !== "false",
   /** FitForge web origin — exercise images live under its /public folder. */
   webAssetBaseUrl: (process.env.WEB_ASSET_BASE_URL ?? "https://c7personalfitness.com").replace(/\/$/, ""),
   superAdminEmail: process.env.SUPER_ADMIN_EMAIL ?? "",
