@@ -16,7 +16,8 @@
     "test:db": "tsx scripts/setup-test-db.ts",
     "test": "playwright test",
     "db:setup": "tsx scripts/db-setup.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "profiles:backfill": "tsx scripts/backfill-profiles.ts"
   },
   "dependencies": {
     "@clerk/backend": "^2.33.9",

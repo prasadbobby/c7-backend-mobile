@@ -23,7 +23,9 @@ export const env = {
   databaseUrl: required("DATABASE_URL"),
   authMode,
   clerkSecretKey: authMode === "clerk" ? required("CLERK_SECRET_KEY") : process.env.CLERK_SECRET_KEY ?? "",
-  clerkJwtKey: process.env.CLERK_JWT_KEY, // optional: PEM public key for networkless verification
+  clerkJwtKey: process.env.CLERK_JWT_KEY,
+  /** Other Clerk instances whose users appear in this database (e.g. production users while developing locally). Names only — never used to verify sign-ins. */
+  clerkDirectoryKeys: (process.env.CLERK_DIRECTORY_SECRET_KEYS ?? "").split(",").map((s) => s.trim()).filter(Boolean), // optional: PEM public key for networkless verification
   // Tolerates quotes, spaces, trailing slashes and ";" separators from hand-edited .env files.
   corsOrigins: (process.env.CORS_ORIGINS ?? "*")
     .split(/[,;\s]+/)

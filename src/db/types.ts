@@ -823,6 +823,16 @@ export interface UserPreference {
   userId: string;
 }
 
+export interface UserProfile {
+  email: string | null;
+  firstName: Generated<string>;
+  imageUrl: Generated<string>;
+  lastName: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+  username: Generated<string>;
+}
+
 export interface UserTrainingProgression {
   actualWeeks: number | null;
   assignedBy: string;
@@ -982,6 +992,7 @@ export interface DB {
   UserGoal: UserGoal;
   UserInfo: UserInfo;
   UserPreference: UserPreference;
+  UserProfile: UserProfile;
   UserTrainingProgression: UserTrainingProgression;
   WaterLog: WaterLog;
   WorkoutLog: WorkoutLog;

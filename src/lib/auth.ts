@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from "hono";
 import { db } from "../db/index.js";
 import { env } from "../env.js";
 import { HttpError, forbidden } from "./http.js";
-import { getUser, type PublicUser } from "./users.js";
+import { getUser, rememberProfile, type PublicUser } from "./users.js";
 import { daysRemainingIST, now, uuid } from "./util.js";
 
 export type Role = "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -40,10 +40,18 @@ const INFO_COLS = ["id", "role", "locked", "membershipStatus", "membershipEndDat
 
 export async function ensureUserInfo(userId: string, email?: string) {
   const existing = await db.selectFrom("UserInfo").select(INFO_COLS).where("userId", "=", userId).executeTakeFirst();
-  if (existing) return existing;
+  if (existing) {
+    // The studio owner's email is always a super admin, even if their row was created before it was configured.
+    if (email && env.superAdminEmail && email.toLowerCase() === env.superAdminEmail.toLowerCase() && existing.role !== "SUPER_ADMIN") {
+      await db.updateTable("UserInfo").set({ role: "SUPER_ADMIN", updatedAt: now() }).where("userId", "=", userId).execute();
+      await db.deleteFrom("AppAccount").where("userId", "=", userId).execute();
+      return { ...existing, role: "SUPER_ADMIN" as const };
+    }
+    return existing;
+  }
   let role: Role = "USER";
   let invited = false;
-  if (email && env.superAdminEmail && email === env.superAdminEmail) (role = "SUPER_ADMIN"), (invited = true);
+  if (email && env.superAdminEmail && email.toLowerCase() === env.superAdminEmail.toLowerCase()) (role = "SUPER_ADMIN"), (invited = true);
   else if (email) {
     const inv = await db.selectFrom("PendingInvitation").select(["role"]).where("email", "=", email).executeTakeFirst();
     if (inv) {
@@ -89,6 +97,7 @@ export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
   if (!token) throw new HttpError(401, "UNAUTHENTICATED", "Missing bearer token");
   const userId = await userIdFromToken(token);
   const profile = await getUser(userId);
+  void rememberProfile(profile);
   const info = await ensureUserInfo(userId, profile.email);
   if (info.locked) throw new HttpError(423, "ACCOUNT_LOCKED", "Your account is locked. Please contact your gym.");
   const access = await accessFor(userId, info.role as Role, info);
